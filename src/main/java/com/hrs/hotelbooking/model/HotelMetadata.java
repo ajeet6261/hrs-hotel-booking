@@ -1,17 +1,38 @@
 package com.hrs.hotelbooking.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
+@Schema(description = "Hotel metadata information")
 public class HotelMetadata {
+    @Schema(description = "Unique identifier for the hotel", example = "TAJ001")
     private String hotelCode;
+
+    @Schema(description = "List of hotel image URLs", example = "[\"https://example.com/image1.jpg\"]")
     private List<String> imageUrls;
+
+    @Schema(description = "Hotel description", example = "Luxury 5-star hotel in Mumbai")
     private String description;
+
+    @Schema(description = "List of available amenities", example = "[\"Swimming Pool\", \"Spa\", \"Fine Dining\"]")
     private List<String> amenities;
+
+    @Schema(description = "Hotel rating (0-5)", example = "4.8")
     private double rating;
+
+    @Schema(description = "Total number of reviews", example = "1200")
     private int totalReviews;
+
+    @Schema(description = "Hotel location", example = "Colaba, Mumbai")
     private String location;
+
+    @Schema(description = "Check-in time", example = "14:00")
     private String checkInTime;
+
+    @Schema(description = "Check-out time", example = "12:00")
     private String checkOutTime;
+
+    @Schema(description = "Base price per night", example = "10000.0")
     private double basePrice;
 
     public HotelMetadata() {

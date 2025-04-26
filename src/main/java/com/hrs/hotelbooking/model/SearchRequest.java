@@ -7,6 +7,12 @@ public class SearchRequest {
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
 
+    public SearchRequest() {
+        this.city = "";
+        this.checkInDate = LocalDate.now();
+        this.checkOutDate = LocalDate.now().plusDays(1);
+    }
+
     public String getCity() {
         return city;
     }

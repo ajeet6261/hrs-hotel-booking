@@ -3,12 +3,24 @@ hotel booking platform for users
 
 # Hotel Booking System
 
+A Spring Boot application for hotel booking management.
+
 ## System Architecture
 
 ### Architecture Diagram
 ![System Architecture](src/main/resources/HotelBookingFlow.png)
 
 ## API Documentation
+
+### Swagger UI
+The API documentation is available through Swagger UI at:
+```
+http://localhost:8080/swagger-ui/index.html
+```
+
+You can also access the OpenAPI specification in:
+- JSON format: `http://localhost:8080/v3/api-docs`
+- YAML format: `http://localhost:8080/v3/api-docs.yaml`
 
 ### Search Hotels API
 
@@ -88,6 +100,94 @@ curl -X POST 'http://localhost:8080/api/search/hotels' \
     "error": "Bad Request",
     "message": "Invalid date format",
     "status": 400
+}
+```
+
+### Cache Management APIs
+
+#### Initialize Cache
+```http
+POST /api/cache/initialize
+```
+Initializes the cache with test hotel data. This endpoint populates the cache with metadata for 8 hotels:
+- Taj Mahal Palace (Mumbai)
+- The Oberoi (Mumbai)
+- Marriott (Mumbai)
+- The Leela (Delhi)
+- Radisson (Delhi)
+- ITC (Delhi)
+- Taj Chandigarh (Chandigarh)
+- Hyatt Amritsar (Amritsar)
+
+**Response:**
+```json
+{
+    "message": "Cache initialized successfully with test data"
+}
+```
+
+#### Clear Cache
+```http
+DELETE /api/cache/clear
+```
+Clears all data from the cache.
+
+**Response:**
+```json
+{
+    "message": "Cache cleared successfully"
+}
+```
+
+#### Get Cache Status
+```http
+GET /api/cache/status
+```
+Returns the number of hotels currently in the cache.
+
+**Response:**
+```json
+{
+    "message": "Cache contains X hotels"
+}
+```
+
+#### Get All Hotels
+```http
+GET /api/cache/hotels
+```
+Returns a list of all hotels currently in the cache.
+
+**Response:**
+```json
+[
+    {
+        "hotelCode": "TAJ001",
+        "name": "Taj Mahal Palace",
+        "city": "Mumbai",
+        "category": "5-star",
+        "basePrice": 10000.0,
+        "imageUrls": ["https://foto.hrsstatic.com/fotos/0/2/269/213/80/000000/http%3A%2F%2Ffoto-origin.hrsstatic.com%2Ffoto%2F9%2F5%2F8%2F4%2F%2Fteaser_958455.jpg"],
+        "description": "Luxury 5-star hotel in Mumbai",
+        "amenities": ["Swimming Pool", "Spa", "Fine Dining", "Business Center"],
+        "rating": 4.8,
+        "totalReviews": 1200,
+        "location": "Colaba, Mumbai",
+        "checkInTime": "14:00",
+        "checkOutTime": "12:00",
+        "available": true
+    },
+    // ... other hotels
+]
+```
+
+### Error Responses
+
+All cache management APIs may return the following error responses:
+
+```json
+{
+    "message": "Failed to [operation]: [error message]"
 }
 ```
 
@@ -203,5 +303,34 @@ mvn spring-boot:run
 ```
 ## Highe-Level Design
 ### System Architecture
+
+## Development
+
+### Prerequisites
+- Java 17 or higher
+- Maven 3.6 or higher
+- MySQL 8.0 or higher
+
+### Building the Project
+```bash
+mvn clean install
+```
+
+### Running the Application
+```bash
+mvn spring-boot:run
+```
+
+After starting the application, you can access:
+- Swagger UI: http://localhost:8080/swagger-ui/index.html
+- API Documentation: http://localhost:8080/v3/api-docs
+
+### Testing
+```bash
+mvn test
+```
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 
