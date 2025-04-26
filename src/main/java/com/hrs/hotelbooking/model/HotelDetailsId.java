@@ -1,14 +1,32 @@
 package com.hrs.hotelbooking.model;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.Data;
 import java.io.Serializable;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class HotelDetailsId implements Serializable {
     private String bookingId;
     private int lineno;
-} 
+
+    public HotelDetailsId() {
+    }
+
+    public HotelDetailsId(String bookingId, int lineno) {
+        this.bookingId = bookingId;
+        this.lineno = lineno;
+    }
+
+    public String getBookingId() {
+        return bookingId;
+    }
+
+    public void setBookingId(String bookingId) {
+        this.bookingId = bookingId;
+    }
+
+    public int getLineno() {
+        return lineno;
+    }
+
+    public void setLineno(int lineno) {
+        this.lineno = lineno;
+    }
+}
