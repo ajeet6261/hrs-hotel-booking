@@ -22,13 +22,7 @@ POST /api/search/hotels
 {
     "city": "Mumbai",
     "checkInDate": "2024-04-01",
-    "checkOutDate": "2024-04-05",
-    "roomType": "Double",
-    "numberOfRooms": 1,
-    "numberOfGuests": 2,
-    "minPrice": 5000,
-    "maxPrice": 15000,
-    "category": "5-star"
+    "checkOutDate": "2024-04-05"
 }
 ```
 
