@@ -5,6 +5,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 
+import java.util.Date;
+
 @Entity
 @Table(name = "cancellation_details")
 @IdClass(CancellationDetailsId.class)
@@ -15,9 +17,9 @@ public class CancellationDetails {
     private String cancellationId;
     @Id
     private int lineNo;
-    private int roomLineNo;  // HotelDetails.lineno
-    private String cancellationDate;
-    private String refundAmount;
+    private int roomLineNo;
+    private Date cancellationDate;
+    private double refundAmount;
     private String cancellationReason;
     private String cancellationStatus;
     private String cancellationBy;
@@ -56,20 +58,12 @@ public class CancellationDetails {
         this.roomLineNo = roomLineNo;
     }
 
-    public String getCancellationDate() {
+    public Date getCancellationDate() {
         return cancellationDate;
     }
 
-    public void setCancellationDate(String cancellationDate) {
+    public void setCancellationDate(Date cancellationDate) {
         this.cancellationDate = cancellationDate;
-    }
-
-    public String getRefundAmount() {
-        return refundAmount;
-    }
-
-    public void setRefundAmount(String refundAmount) {
-        this.refundAmount = refundAmount;
     }
 
     public String getCancellationReason() {
@@ -110,5 +104,13 @@ public class CancellationDetails {
 
     public void setRefundMode(int refundMode) {
         this.refundMode = refundMode;
+    }
+
+    public double getRefundAmount() {
+        return refundAmount;
+    }
+
+    public void setRefundAmount(double refundAmount) {
+        this.refundAmount = refundAmount;
     }
 }

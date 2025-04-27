@@ -35,3 +35,16 @@ logging:
     name: /tmp/logs/hrs/application.log
     max-size: 10MB
     max-history: 7
+
+thread:
+  pool:
+    size: 10
+
+cancellation:
+  policy:
+    api:
+      url: http://api.example.com/cancellation-policies
+
+hotelier:
+  api:
+    url: http://localhost:8081/api/hotelier

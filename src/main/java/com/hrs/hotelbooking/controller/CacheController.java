@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
@@ -158,7 +159,7 @@ public class CacheController {
 
         return hotelCodes.stream()
                 .map(cacheUtil::getHotelMetadata)
-                .filter(metadata -> metadata != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 

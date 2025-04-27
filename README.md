@@ -287,6 +287,79 @@ CREATE TABLE user (
 - `PUT /api/bookings/updateBooking` - Update booking details
 - `DELETE /api/bookings/cancelBooking/{bookingId}` - Cancel a booking
 
+# BookingServiceImpl
+
+## Overview
+`BookingServiceImpl` is the core service implementation for hotel booking operations. It handles booking creation, retrieval, updates, and cancellations with integrated caching and asynchronous processing.
+
+## Features
+
+### 1. Booking Creation (`createBooking`)
+- Validates user existence and active status
+- Verifies hotel availability and active status
+- Creates hotel details with unique booking IDs
+- Implements asynchronous caching and queue publishing
+- Uses thread pool for non-blocking operations
+
+### 2. Booking Retrieval (`getBooking`)
+- Implements cache-first strategy
+- Falls back to database if cache miss
+- Fetches cancellation policies from third-party API
+- Uses asynchronous caching for performance
+- Handles concurrent operations safely
+
+### 3. Caching Strategy
+- Uses in-memory cache for hotel details
+- Caches cancellation policies
+- Implements async cache updates
+- Maintains booking history
+
+### 4. Error Handling
+- Throws `InvalidRequestException` for invalid inputs
+- Handles API failures gracefully
+- Provides meaningful error messages
+
+## Dependencies
+- `HotelRepository`: For hotel data access
+- `HotelDetailsDao`: For hotel details management
+- `UserRepository`: For user validation
+- `HotelDetailsRepository`: For database operations
+- `CancellationPolicyAdapter`: For third-party API integration
+- `CacheUtil`: For caching operations
+- `ExecutorService`: For async operations
+
+## Configuration
+- Thread pool size configured in `application-dev.yml`
+- API endpoints configured in properties
+- Cache settings managed by `CacheUtil`
+
+## Best Practices Used
+1. Async Operations
+   - Uses thread pool for non-blocking operations
+   - Implements CompletableFuture for async tasks
+   - Maintains response time performance
+
+2. Caching
+   - Implements cache-first strategy
+   - Uses async cache updates
+   - Maintains data consistency
+
+3. Error Handling
+   - Proper exception handling
+   - Meaningful error messages
+   - Graceful fallbacks
+
+4. Code Organization
+   - Clear method responsibilities
+   - Proper dependency injection
+   - Thread-safe operations
+
+## Notes
+- All async operations use the configured thread pool
+- Cache updates are non-blocking
+- Third-party API calls are handled asynchronously
+- Proper error handling for all operations 
+
 ## Setup Instructions
 
 1. Create MySQL database:

@@ -8,6 +8,7 @@ public class Booking {
     private List<HotelDetails> hotelDetails;
     private Hotel hotel;
     private List<CancellationDetails> cancellationDetails;
+    private List<CancellationPolicy> cancellationPolicies;
 
     public String getBookingId() {
         return bookingId;
@@ -47,5 +48,13 @@ public class Booking {
 
     public void setCancellationDetails(List<CancellationDetails> cancellationDetails) {
         this.cancellationDetails = cancellationDetails;
+    }
+
+    public List<CancellationPolicy> getCancellationPolicies() {
+        return cancellationPolicies;
+    }
+
+    public void setCancellationPolicies(List<CancellationPolicy> cancellationPolicies) {
+        this.cancellationPolicies = cancellationPolicies;
     }
 }

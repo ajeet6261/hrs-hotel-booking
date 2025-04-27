@@ -2,7 +2,7 @@ package com.hrs.hotelbooking.model;
 
 import java.util.List;
 
-public class SearchResponse {
+public class SearchResponse extends Response {
     private String hotelCode;
     private String name;
     private String city;
