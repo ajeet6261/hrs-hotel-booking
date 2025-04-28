@@ -7,7 +7,6 @@ spring:
     username: root
     password: root1
     driver-class-name: com.mysql.cj.jdbc.Driver
-
   jpa:
     hibernate:
       ddl-auto: update
@@ -19,15 +18,17 @@ spring:
         jdbc:
           time_zone: UTC
     open-in-view: false
+  application:
+    name: hotel-booking
 
 # Logging Configuration
 logging:
   level:
     root: INFO
-    com.hrs.hotelbooking: DEBUG
-    com.hrs.hotelbooking.aspect: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.hrs.hotelbooking: INFO
+    com.hrs.hotelbooking.aspect: INFO
+    org.hibernate.SQL: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
@@ -45,6 +46,38 @@ cancellation:
     api:
       url: http://api.example.com/cancellation-policies
 
+resilience4j:
+  circuitbreaker:
+    instances:
+      hotelierAdapter:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+  retry:
+    instances:
+      hotelierAdapter:
+        maxAttempts: 3
+        waitDuration: 1s
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+  ratelimiter:
+    instances:
+      hotelierAdapter:
+        limitForPeriod: 10
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0s
+
 hotelier:
   api:
-    url: http://localhost:8081/api/hotelier
+    url: http://localhost:8081/api
+    timeout: 5000
+    retry:
+      maxAttempts: 3
+      initialInterval: 1000
+      multiplier: 2
+      maxInterval: 10000

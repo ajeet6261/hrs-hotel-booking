@@ -11,6 +11,8 @@ import com.hrs.hotelbooking.repository.HotelDetailsRepository;
 import com.hrs.hotelbooking.service.CancelBookingService;
 import com.hrs.hotelbooking.utils.CacheUtil;
 import com.hrs.hotelbooking.utils.Constant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,8 @@ import java.util.concurrent.ExecutorService;
 
 @Service
 public class CancelBookingServiceImpl implements CancelBookingService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CancelBookingServiceImpl.class);
 
     @Autowired
     private HotelDetailsRepository hotelDetailsRepository;
@@ -42,68 +46,87 @@ public class CancelBookingServiceImpl implements CancelBookingService {
     private HotelDetailsDao hotelDetailsDao;
 
     @Override
-    public Response cancelBooking(CancellationRequest cancellationRequest, ServiceContext serviceContext) {
-        Response response = new Response();
-        Booking booking = serviceContext.getBooking();
+    public CompletableFuture<Response> cancelBooking(CancellationRequest cancellationRequest, ServiceContext serviceContext) {
+        logger.info("Processing cancellation request for bookingId: {}", cancellationRequest.getBookingId());
+        
+        return CompletableFuture.supplyAsync(() -> {
+            Response response = new Response();
+            Booking booking = serviceContext.getBooking();
 
-        // Validate booking exists
-        if (booking == null || booking.getHotelDetails() == null) {
-            throw new InvalidRequestException("Booking not found");
-        }
-
-        if (serviceContext.getThirdPartyResponseList() == null) {
-            serviceContext.setThirdPartyResponseList(new Hashtable<>());
-        }
-
-        try {
-            // Call hotelier API to cancel booking
-            CompletableFuture<HotelierCancelResponse> hotelierResponse = hotelierAdapter.cancelBooking(cancellationRequest);
-            HotelierCancelResponse result = hotelierResponse.get();
-            if (!"SUCCESS".equals(result.getStatus())) {
-                throw new RuntimeException("Failed to cancel booking at hotelier side");
+            // Validate booking exists
+            if (booking == null || booking.getHotelDetails() == null) {
+                logger.error("Booking not found for bookingId: {}", cancellationRequest.getBookingId());
+                throw new InvalidRequestException("Booking not found");
             }
-            serviceContext.getThirdPartyResponseList().put(Constant.HOTELIER_CANCEL_RESPONSE, result);
-        } catch (Exception e) {
-            throw new RuntimeException("Error cancelling booking", e);
-        }
 
-        // Create cancellation details
-        List<CancellationDetails> cancellationDetails = (List<CancellationDetails>) cancellationDetailBuilder.build(serviceContext, cancellationRequest);
-        cancellationDetailsRepository.saveAll(cancellationDetails);
-
-        for (CancellationLine cancellationLine : cancellationRequest.getCancellationLines()) {
-            HotelDetails hotelDetails = booking.getHotelDetails().stream().filter(detail -> detail.getLineno() == cancellationLine.getRoomLineNo()).findFirst().orElse(null);
-            if (hotelDetails == null) {
-                throw new InvalidRequestException("Hotel details not found");
+            if (serviceContext.getThirdPartyResponseList() == null) {
+                serviceContext.setThirdPartyResponseList(new Hashtable<>());
             }
-            // Update booking status            
-            hotelDetails.setBookingStatus(HotelDetails_Enum.BookingStatus.CANCELLED);
-            hotelDetailsDao.save(hotelDetails);
-        }
 
-        try {
-            // Update cache asynchronously
-            CompletableFuture.runAsync(() -> {
-                CacheUtil.addHotelDetailsToCache(cancellationRequest.getBookingId(),
-                        booking.getHotelDetails());
-                List<BookingHistory> histories = CacheUtil.getBookingHistory(cancellationRequest.getUserId());
-                if (!histories.isEmpty()) {
-                    histories.stream()
-                        .filter(history -> cancellationRequest.getBookingId().equals(history.getBookingId()))
-                        .findFirst()
-                        .ifPresent(history -> {
-                            history.setBookingStatus(HotelDetails_Enum.BookingStatus.CANCELLED);
-                            CacheUtil.addBookingHistory(history);
-                        });
+            try {
+                // Call hotelier API to cancel booking
+                logger.debug("Calling hotelier API to cancel booking for bookingId: {}", cancellationRequest.getBookingId());
+                HotelierCancelResponse result = hotelierAdapter.cancelBooking(cancellationRequest).get();
+                if (!"SUCCESS".equals(result.getStatus())) {
+                    logger.error("Failed to cancel booking at hotelier side for bookingId: {}", cancellationRequest.getBookingId());
+                    throw new RuntimeException("Failed to cancel booking at hotelier side");
                 }
-            }, executorService);
+                serviceContext.getThirdPartyResponseList().put(Constant.HOTELIER_CANCEL_RESPONSE, result);
+                logger.debug("Successfully cancelled booking at hotelier side for bookingId: {}", cancellationRequest.getBookingId());
+            } catch (Exception e) {
+                logger.error("Error cancelling booking at hotelier side for bookingId: {}", cancellationRequest.getBookingId(), e);
+                throw new RuntimeException("Error cancelling booking", e);
+            }
 
-            response.setStatus(true);
-            response.setMessage("Booking cancelled successfully.");
-        } catch (Exception e) {
-            throw new RuntimeException("Error cancelling booking", e);
-        }
+            // Create cancellation details
+            logger.debug("Creating cancellation details for bookingId: {}", cancellationRequest.getBookingId());
+            List<CancellationDetails> cancellationDetails = (List<CancellationDetails>) cancellationDetailBuilder.build(serviceContext, cancellationRequest);
+            cancellationDetailsRepository.saveAll(cancellationDetails);
 
-        return response;
+            for (CancellationLine cancellationLine : cancellationRequest.getCancellationLines()) {
+                HotelDetails hotelDetails = booking.getHotelDetails().stream()
+                    .filter(detail -> detail.getLineno() == cancellationLine.getRoomLineNo())
+                    .findFirst()
+                    .orElse(null);
+                if (hotelDetails == null) {
+                    logger.error("Hotel details not found for lineNo: {}", cancellationLine.getRoomLineNo());
+                    throw new InvalidRequestException("Hotel details not found");
+                }
+                // Update booking status            
+                hotelDetails.setBookingStatus(HotelDetails_Enum.BookingStatus.CANCELLED);
+                hotelDetailsDao.save(hotelDetails);
+                logger.debug("Updated booking status to CANCELLED for lineNo: {}", cancellationLine.getRoomLineNo());
+            }
+
+            try {
+                // Update cache asynchronously
+                logger.debug("Initiating async cache updates for bookingId: {}", cancellationRequest.getBookingId());
+                CompletableFuture.runAsync(() -> {
+                    logger.debug("Updating cache with hotel details for bookingId: {}", cancellationRequest.getBookingId());
+                    CacheUtil.addHotelDetailsToCache(cancellationRequest.getBookingId(),
+                            booking.getHotelDetails());
+                    List<BookingHistory> histories = CacheUtil.getBookingHistory(cancellationRequest.getUserId());
+                    if (!histories.isEmpty()) {
+                        histories.stream()
+                            .filter(history -> cancellationRequest.getBookingId().equals(history.getBookingId()))
+                            .findFirst()
+                            .ifPresent(history -> {
+                                history.setBookingStatus(HotelDetails_Enum.BookingStatus.CANCELLED);
+                                CacheUtil.addBookingHistory(history);
+                                logger.debug("Updated booking history status to CANCELLED for bookingId: {}", history.getBookingId());
+                            });
+                    }
+                }, executorService);
+
+                response.setStatus(true);
+                response.setMessage("Booking cancelled successfully.");
+                logger.info("Successfully cancelled booking for bookingId: {}", cancellationRequest.getBookingId());
+            } catch (Exception e) {
+                logger.error("Error updating cache for bookingId: {}", cancellationRequest.getBookingId(), e);
+                throw new RuntimeException("Error cancelling booking", e);
+            }
+
+            return response;
+        }, executorService);
     }
 } 

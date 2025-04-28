@@ -4,6 +4,8 @@ import com.hrs.hotelbooking.model.Booking;
 import com.hrs.hotelbooking.model.Response;
 import com.hrs.hotelbooking.model.ServiceContext;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface UpdateBookingService {
-    Response updateBooking(Booking booking, ServiceContext serviceContext);
+    CompletableFuture<Response> updateBooking(Booking booking, ServiceContext serviceContext);
 } 

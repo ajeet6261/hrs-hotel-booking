@@ -40,7 +40,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Response> handleRuntimeException(RuntimeException ex, WebRequest request) {
         Response response = new Response();
         response.setStatus(false);
-        response.setMessage(ex.getMessage());
+        response.setMessage("internal error occurred !! ");
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

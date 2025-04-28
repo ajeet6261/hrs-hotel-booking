@@ -4,13 +4,14 @@ import com.hrs.hotelbooking.model.*;
 import com.hrs.hotelbooking.service.CancelBookingService;
 import com.hrs.hotelbooking.service.CreateBookingService;
 import com.hrs.hotelbooking.service.GetBookingService;
-import com.hrs.hotelbooking.service.UpdateBookingService;
 import com.hrs.hotelbooking.service.impl.ServiceContextServiceImpl;
 import com.hrs.hotelbooking.service.impl.UpdateBookingServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -30,33 +31,37 @@ public class BookingController {
     @Autowired
     private ServiceContextServiceImpl serviceContextService;
 
-
     @PostMapping("/createBooking")
-    public Response createBooking(@RequestBody BookingRequest bookingRequest) {
+    @Async("taskExecutor")
+    public CompletableFuture<Response> createBooking(@RequestBody BookingRequest bookingRequest) {
         ServiceContext serviceContext = serviceContextService.createServiceContext(bookingRequest.getBookingId(), bookingRequest.getHotelCode(), bookingRequest.getUserId());
         return createBookingService.createBooking(bookingRequest, serviceContext);
     }
 
     @GetMapping("/getBooking/{bookingId}")
-    public Booking getBooking(@PathVariable String bookingId) {
+    @Async("taskExecutor")
+    public CompletableFuture<Booking> getBooking(@PathVariable String bookingId) {
         ServiceContext serviceContext = serviceContextService.createServiceContext(bookingId, null, null);
         return getBookingService.getBooking(bookingId, serviceContext);
     }
 
     @GetMapping("/getAllBookings/{userId}")
-    public List<BookingHistory> getAllBookings(@PathVariable String userId) {
+    @Async("taskExecutor")
+    public CompletableFuture<List<BookingHistory>> getAllBookings(@PathVariable String userId) {
         ServiceContext serviceContext = serviceContextService.createServiceContext(null, null, userId);
         return getBookingService.getAllBookings(serviceContext);
     }
 
     @PutMapping("/updateBooking")
-    public Response updateBooking(@RequestBody Booking booking) {
+    @Async("taskExecutor")
+    public CompletableFuture<Response> updateBooking(@RequestBody Booking booking) {
         ServiceContext serviceContext = serviceContextService.createServiceContext(booking.getBookingId(), null, null);
         return updateBookingService.updateBooking(booking, serviceContext);
     }
 
     @PostMapping("/cancelBooking")
-    public Response cancelBooking(@RequestBody CancellationRequest cancellationRequest) {
+    @Async("taskExecutor")
+    public CompletableFuture<Response> cancelBooking(@RequestBody CancellationRequest cancellationRequest) {
         ServiceContext serviceContext = serviceContextService.createServiceContext(cancellationRequest.getBookingId(), null, cancellationRequest.getUserId());
         return cancelBookingService.cancelBooking(cancellationRequest, serviceContext);
     }

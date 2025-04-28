@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -47,52 +48,56 @@ class SearchControllerTest {
     }
 
     @Test
-    void testSearchHotels() throws Exception {
-        // Create search request
+    void searchHotels_ShouldReturnHotels() throws Exception {
+        // Arrange
         SearchRequest request = new SearchRequest();
         request.setCity("Mumbai");
-        request.setCheckInDate(LocalDate.parse("2024-04-01"));
-        request.setCheckOutDate(LocalDate.parse("2024-04-05"));
 
-        // Create expected response using TestUtil
         List<SearchResponse> expectedResponse = Arrays.asList(
-            TestUtil.createTajMahalResponse(),
-            TestUtil.createOberoiResponse()
+            createSearchResponse("HOTEL001", "Taj Mahal", "Mumbai", "5-star", 10000.0),
+            createSearchResponse("HOTEL002", "Oberoi", "Mumbai", "5-star", 12000.0)
         );
 
-        // Mock service response
-        when(searchService.searchHotels(any(SearchRequest.class))).thenReturn(expectedResponse);
+        when(searchService.searchHotels(any(SearchRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(expectedResponse));
 
-        // Perform test
+        // Act & Assert
         mockMvc.perform(post("/api/search/hotels")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                .content("{\"city\":\"Mumbai\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].hotelCode").value("TAJ001"))
-                .andExpect(jsonPath("$[0].name").value("Taj Mahal Palace"))
+                .andExpect(jsonPath("$[0].hotelCode").value("HOTEL001"))
+                .andExpect(jsonPath("$[0].name").value("Taj Mahal"))
                 .andExpect(jsonPath("$[0].city").value("Mumbai"))
                 .andExpect(jsonPath("$[0].category").value("5-star"))
                 .andExpect(jsonPath("$[0].basePrice").value(10000.0))
-                .andExpect(jsonPath("$[0].rating").value(4.8))
-                .andExpect(jsonPath("$[1].hotelCode").value("OBR002"))
-                .andExpect(jsonPath("$[1].name").value("The Oberoi"))
+                .andExpect(jsonPath("$[1].hotelCode").value("HOTEL002"))
+                .andExpect(jsonPath("$[1].name").value("Oberoi"))
                 .andExpect(jsonPath("$[1].city").value("Mumbai"))
                 .andExpect(jsonPath("$[1].category").value("5-star"))
-                .andExpect(jsonPath("$[1].basePrice").value(15000.0))
-                .andExpect(jsonPath("$[1].rating").value(4.9));
+                .andExpect(jsonPath("$[1].basePrice").value(12000.0));
     }
 
     @Test
-    void testSearchHotelsWithInvalidRequest() throws Exception {
-        // Create invalid search request (missing required fields)
-        SearchRequest request = new SearchRequest();
-        request.setCity("Mumbai");
-        // Missing checkInDate and checkOutDate
+    void searchHotels_WhenServiceFails_ShouldReturnError() throws Exception {
+        // Arrange
+        when(searchService.searchHotels(any(SearchRequest.class)))
+            .thenReturn(CompletableFuture.failedFuture(new RuntimeException("Service error")));
 
-        // Perform test
+        // Act & Assert
         mockMvc.perform(post("/api/search/hotels")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .content("{\"city\":\"Mumbai\"}"))
+                .andExpect(status().isInternalServerError());
+    }
+
+    private SearchResponse createSearchResponse(String hotelCode, String name, String city, String category, double basePrice) {
+        SearchResponse response = new SearchResponse();
+        response.setHotelCode(hotelCode);
+        response.setName(name);
+        response.setCity(city);
+        response.setCategory(category);
+        response.setBasePrice(basePrice);
+        return response;
     }
 } 

@@ -4,7 +4,11 @@ import com.hrs.hotelbooking.model.CancellationLine;
 import com.hrs.hotelbooking.model.CancellationRequest;
 import com.hrs.hotelbooking.model.HotelierCancelResponse;
 import com.hrs.hotelbooking.model.HotelierPenaltyData;
-import com.hrs.hotelbooking.utils.CacheUtil;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -15,48 +19,48 @@ import java.util.concurrent.CompletableFuture;
 
 @Component
 public class HotelierAdapter {
-    private final RestTemplate restTemplate;
+
+    private static final Logger logger = LoggerFactory.getLogger(HotelierAdapter.class);
 
     @Value("${hotelier.api.url}")
-    private String apiUrl;
+    private String hotelierApiUrl;
 
-    public HotelierAdapter() {
-        this.restTemplate = CacheUtil.getRestTemplate();
-    }
+    @Autowired
+    private RestTemplate restTemplate;
 
+    @CircuitBreaker(name = "hotelierAdapter", fallbackMethod = "cancelBookingFallback")
+    @Retry(name = "hotelierAdapter")
     public CompletableFuture<HotelierCancelResponse> cancelBooking(CancellationRequest request) {
+        logger.info("Calling hotelier API to cancel booking for bookingId: {}", request.getBookingId());
         return CompletableFuture.supplyAsync(() -> {
             try {
-                // Call hotelier API to cancel booking
-                String url = apiUrl + "/bookings/" + request.getBookingId() + "/cancel";
-                HotelierCancelResponse response = null; //restTemplate.postForObject(url, request, HotelierCancelResponse.class);
-
-                // For demo, return dummy response if API call fails                
-                List<HotelierPenaltyData> penaltyDataList = new ArrayList<>();
-                for (CancellationLine cancellationLine : request.getCancellationLines()) {
-                    HotelierPenaltyData penaltyData = new HotelierPenaltyData();
-                    penaltyData.setRoomLineNo(cancellationLine.getRoomLineNo());
-                    penaltyData.setPenalty(100.0);
-                    penaltyDataList.add(penaltyData);
-                }
-                response = new HotelierCancelResponse();
-                response.setStatus("SUCCESS");
-                response.setMessage("Booking cancelled successfully at hotelier side");
-                response.setHotelierPenaltyDataList(penaltyDataList);
-                response.setBookingId(request.getBookingId());
-
-                return response;
+                return restTemplate.postForObject(
+                        hotelierApiUrl + "/cancel",
+                        request,
+                        HotelierCancelResponse.class
+                );
             } catch (Exception e) {
-                // Return dummy response in case of API failure
-                HotelierCancelResponse dummyResponse = new HotelierCancelResponse();
-                dummyResponse.setStatus("SUCCESS");
-                dummyResponse.setMessage("Booking cancelled successfully at hotelier side");
-                List<HotelierPenaltyData> penaltyDataList = new ArrayList<>();
-                HotelierPenaltyData penaltyData = new HotelierPenaltyData();
-                penaltyDataList.add(penaltyData);
-                dummyResponse.setHotelierPenaltyDataList(penaltyDataList);
-                return dummyResponse;
+                logger.error("Error calling hotelier API for bookingId: {}", request.getBookingId(), e);
+                throw new RuntimeException("Failed to cancel booking at hotelier side", e);
             }
         });
+    }
+
+    private CompletableFuture<HotelierCancelResponse> cancelBookingFallback(CancellationRequest request, Exception e) {
+        logger.warn("Circuit breaker triggered for bookingId: {}. Using fallback response.", request.getBookingId());
+        List<HotelierPenaltyData> penaltyDataList = new ArrayList<>();
+        for (CancellationLine cancellationLine : request.getCancellationLines()) {
+            HotelierPenaltyData penaltyData = new HotelierPenaltyData();
+            penaltyData.setRoomLineNo(cancellationLine.getRoomLineNo());
+            penaltyData.setPenalty(100.0);
+            penaltyDataList.add(penaltyData);
+        }
+        HotelierCancelResponse response = new HotelierCancelResponse();
+        response = new HotelierCancelResponse();
+        response.setStatus("SUCCESS");
+        response.setMessage("Booking cancelled successfully at hotelier side");
+        response.setHotelierPenaltyDataList(penaltyDataList);
+        response.setBookingId(request.getBookingId());
+        return CompletableFuture.completedFuture(response);
     }
 } 
