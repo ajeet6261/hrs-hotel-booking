@@ -11,4 +11,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface HotelDetailsRepository extends JpaRepository<HotelDetails, HotelDetailsId> {
     List<HotelDetails> findByBookingId(String bookingId);
+    boolean existsByBookingId(String bookingId);
 } 

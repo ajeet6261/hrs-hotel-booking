@@ -6,6 +6,16 @@ public class Response {
     private String message;
     private String bookingId;
 
+    public Response() {
+    }
+
+    public Response(boolean status, String userId, String message, String bookingId) {
+        this.status = status;
+        this.userId = userId;
+        this.message = message;
+        this.bookingId = bookingId;
+    }
+
     public boolean isStatus() {
         return status;
     }

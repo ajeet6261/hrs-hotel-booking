@@ -265,6 +265,7 @@ CREATE TABLE cancellation_details (
     cancellation_by VARCHAR(50),
     cancellation_remarks TEXT,
     refund_mode INT,
+    requestType INT,
     PRIMARY KEY (booking_id, cancellation_id, line_no)    
 );
 ```

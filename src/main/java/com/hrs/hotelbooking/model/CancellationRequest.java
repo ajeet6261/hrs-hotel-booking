@@ -1,6 +1,7 @@
 package com.hrs.hotelbooking.model;
 
 import com.hrs.hotelbooking.enumextension.CancelDetails_Enum;
+
 import java.util.List;
 
 public class CancellationRequest {
@@ -10,6 +11,8 @@ public class CancellationRequest {
     private boolean isCommitCall;
     private List<CancellationLine> cancellationLines;
     private CancelDetails_Enum.Refund_Adjustment refundAdjustment;
+
+    private int requestType;
 
     public String getBookingId() {
         return bookingId;
@@ -35,6 +38,14 @@ public class CancellationRequest {
         this.reason = reason;
     }
 
+    public boolean isCommitCall() {
+        return isCommitCall;
+    }
+
+    public void setCommitCall(boolean commitCall) {
+        isCommitCall = commitCall;
+    }
+
     public List<CancellationLine> getCancellationLines() {
         return cancellationLines;
     }
@@ -51,11 +62,11 @@ public class CancellationRequest {
         this.refundAdjustment = refundAdjustment;
     }
 
-    public boolean isCommitCall() {
-        return isCommitCall;
+    public int getRequestType() {
+        return requestType;
     }
 
-    public void setCommitCall(boolean commitCall) {
-        isCommitCall = commitCall;
+    public void setRequestType(int requestType) {
+        this.requestType = requestType;
     }
 }

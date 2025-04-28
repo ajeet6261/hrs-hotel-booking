@@ -54,9 +54,9 @@ public class BookingController {
 
     @PutMapping("/updateBooking")
     @Async("taskExecutor")
-    public CompletableFuture<Response> updateBooking(@RequestBody Booking booking) {
-        ServiceContext serviceContext = serviceContextService.createServiceContext(booking.getBookingId(), null, null);
-        return updateBookingService.updateBooking(booking, serviceContext);
+    public CompletableFuture<Response> updateBooking(@RequestBody BookingRequest bookingRequest) {
+        ServiceContext serviceContext = serviceContextService.createServiceContext(bookingRequest.getBookingId(), bookingRequest.getHotelCode(), bookingRequest.getUserId());
+        return updateBookingService.updateBooking(bookingRequest, serviceContext);
     }
 
     @PostMapping("/cancelBooking")

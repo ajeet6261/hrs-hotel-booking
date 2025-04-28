@@ -3,11 +3,12 @@ package com.hrs.hotelbooking.model;
 import com.hrs.hotelbooking.enumextension.HotelDetails_Enum;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 public class BookingHistory {
     private String userId;
     private String bookingId;
-    private LocalDateTime createdAt;
+    private Date createdAt;
     private HotelDetails_Enum.BookingStatus bookingStatus;
 
     public BookingHistory() {
@@ -16,7 +17,6 @@ public class BookingHistory {
     public BookingHistory(String userId, String bookingId, LocalDateTime createdAt, HotelDetails_Enum.BookingStatus bookingStatus) {
         this.userId = userId;
         this.bookingId = bookingId;
-        this.createdAt = createdAt;
         this.bookingStatus = bookingStatus;
     }
 
@@ -36,19 +36,19 @@ public class BookingHistory {
         this.bookingId = bookingId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public HotelDetails_Enum.BookingStatus getBookingStatus() {
         return bookingStatus;
     }
 
     public void setBookingStatus(HotelDetails_Enum.BookingStatus bookingStatus) {
         this.bookingStatus = bookingStatus;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 }

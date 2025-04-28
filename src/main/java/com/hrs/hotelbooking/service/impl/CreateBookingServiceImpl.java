@@ -1,5 +1,6 @@
 package com.hrs.hotelbooking.service.impl;
 
+import com.hrs.hotelbooking.adapter.HotelierAdapter;
 import com.hrs.hotelbooking.dao.HotelDetailsDao;
 import com.hrs.hotelbooking.exception.InvalidRequestException;
 import com.hrs.hotelbooking.model.*;
@@ -11,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +35,9 @@ public class CreateBookingServiceImpl implements CreateBookingService {
 
     @Autowired
     private ExecutorService executorService;
+
+    @Autowired
+    private HotelierAdapter hotelAdapter;
 
     private User validateUser(String userId) {
         logger.debug("Validating user with userId: {}", userId);
@@ -58,9 +63,9 @@ public class CreateBookingServiceImpl implements CreateBookingService {
 
     @Override
     public CompletableFuture<Response> createBooking(BookingRequest bookingRequest, ServiceContext serviceContext) {
-        logger.info("Creating booking for userId: {} and hotelCode: {}", 
-            bookingRequest.getUserId(), bookingRequest.getHotelCode());
-        
+        logger.info("Creating booking for userId: {} and hotelCode: {}",
+                bookingRequest.getUserId(), bookingRequest.getHotelCode());
+
         return CompletableFuture.supplyAsync(() -> {
             Response response = new Response();
 
@@ -74,7 +79,15 @@ public class CreateBookingServiceImpl implements CreateBookingService {
                     logger.error("Hotel is not active for hotelCode: {}", hotel.getCode());
                     throw new InvalidRequestException("Hotel is not active");
                 }
-                
+                // confirm booking at hotel end.
+                HotelBookResponse hotelBookResponse = hotelAdapter.bookHotel(bookingRequest).join();
+                if (hotelBookResponse.getStatus().equals("SUCCESS")) {
+                    logger.debug("Booking confirmed at hotel end for bookingId: {}", bookingRequest.getBookingId());
+                } else {
+                    logger.error("Booking failed at hotel end for bookingId: {}", bookingRequest.getBookingId());
+                    throw new InvalidRequestException("Booking failed at hotel end");
+                }
+
                 logger.debug("Creating hotel details for booking");
                 List<HotelDetails> hotelDetails = hotelDetailsDao.prepareHotelDetails(hotel, bookingRequest);
                 hotelDetailsDao.saveAll(hotelDetails);
@@ -83,7 +96,7 @@ public class CreateBookingServiceImpl implements CreateBookingService {
                 String bookingId = hotelDetails.get(0).getBookingId();
                 response.setBookingId(bookingId);
                 bookingRequest.setBookingId(bookingId);
-                
+
                 logger.debug("Initiating async operations for bookingId: {}", bookingId);
                 CompletableFuture.runAsync(() -> {
                     logger.debug("Caching hotel details and publishing to queue for bookingId: {}", bookingId);
@@ -94,7 +107,7 @@ public class CreateBookingServiceImpl implements CreateBookingService {
                 logger.error("Hotel not found for hotelCode: {}", bookingRequest.getHotelCode());
                 throw new InvalidRequestException("Hotel is not registered");
             }
-            
+
             response.setStatus(true);
             response.setMessage("Booking created successfully");
             response.setUserId(user.getUserId());

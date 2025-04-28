@@ -17,7 +17,8 @@ public class HotelDetails_Enum {
     }
     public enum HotelStatus {
         CONFIRMED(1),
-        REJECTED(2);
+        REJECTED(2),
+        RECONFIRMED(3);
 
         private int value;
 

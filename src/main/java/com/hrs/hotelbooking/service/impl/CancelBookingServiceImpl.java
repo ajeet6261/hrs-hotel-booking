@@ -3,6 +3,7 @@ package com.hrs.hotelbooking.service.impl;
 import com.hrs.hotelbooking.adapter.HotelierAdapter;
 import com.hrs.hotelbooking.builder.CancellationDetailBuilder;
 import com.hrs.hotelbooking.dao.HotelDetailsDao;
+import com.hrs.hotelbooking.enumextension.CancelDetails_Enum;
 import com.hrs.hotelbooking.enumextension.HotelDetails_Enum;
 import com.hrs.hotelbooking.exception.InvalidRequestException;
 import com.hrs.hotelbooking.model.*;
@@ -16,9 +17,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
@@ -26,9 +28,7 @@ import java.util.concurrent.ExecutorService;
 public class CancelBookingServiceImpl implements CancelBookingService {
 
     private static final Logger logger = LoggerFactory.getLogger(CancelBookingServiceImpl.class);
-
-    @Autowired
-    private HotelDetailsRepository hotelDetailsRepository;
+    
 
     @Autowired
     private HotelierAdapter hotelierAdapter;
@@ -48,7 +48,7 @@ public class CancelBookingServiceImpl implements CancelBookingService {
     @Override
     public CompletableFuture<Response> cancelBooking(CancellationRequest cancellationRequest, ServiceContext serviceContext) {
         logger.info("Processing cancellation request for bookingId: {}", cancellationRequest.getBookingId());
-        
+
         return CompletableFuture.supplyAsync(() -> {
             Response response = new Response();
             Booking booking = serviceContext.getBooking();
@@ -61,6 +61,12 @@ public class CancelBookingServiceImpl implements CancelBookingService {
 
             if (serviceContext.getThirdPartyResponseList() == null) {
                 serviceContext.setThirdPartyResponseList(new Hashtable<>());
+            }
+
+            Optional<CancellationDetails> details = serviceContext.getBooking().getCancellationDetails().stream().filter(cancellationDetails -> cancellationDetails.getBookingId().equalsIgnoreCase(cancellationRequest.getBookingId())
+                    && cancellationDetails.getRequestType() == CancelDetails_Enum.RequestType.Cancellation.getCode()).findFirst();
+            if (details.isPresent()) {
+                throw new InvalidRequestException("Booking is already cancelled");
             }
 
             try {
@@ -85,9 +91,9 @@ public class CancelBookingServiceImpl implements CancelBookingService {
 
             for (CancellationLine cancellationLine : cancellationRequest.getCancellationLines()) {
                 HotelDetails hotelDetails = booking.getHotelDetails().stream()
-                    .filter(detail -> detail.getLineno() == cancellationLine.getRoomLineNo())
-                    .findFirst()
-                    .orElse(null);
+                        .filter(detail -> detail.getLineno() == cancellationLine.getRoomLineNo())
+                        .findFirst()
+                        .orElse(null);
                 if (hotelDetails == null) {
                     logger.error("Hotel details not found for lineNo: {}", cancellationLine.getRoomLineNo());
                     throw new InvalidRequestException("Hotel details not found");
@@ -108,17 +114,25 @@ public class CancelBookingServiceImpl implements CancelBookingService {
                     List<BookingHistory> histories = CacheUtil.getBookingHistory(cancellationRequest.getUserId());
                     if (!histories.isEmpty()) {
                         histories.stream()
-                            .filter(history -> cancellationRequest.getBookingId().equals(history.getBookingId()))
-                            .findFirst()
-                            .ifPresent(history -> {
-                                history.setBookingStatus(HotelDetails_Enum.BookingStatus.CANCELLED);
-                                CacheUtil.addBookingHistory(history);
-                                logger.debug("Updated booking history status to CANCELLED for bookingId: {}", history.getBookingId());
-                            });
+                                .filter(history -> cancellationRequest.getBookingId().equals(history.getBookingId()))
+                                .findFirst()
+                                .ifPresent(history -> {
+                                    history.setBookingStatus(HotelDetails_Enum.BookingStatus.CANCELLED);
+                                    CacheUtil.addBookingHistory(history);
+                                    logger.debug("Updated booking history status to CANCELLED for bookingId: {}", history.getBookingId());
+                                });
+                    } else {
+                        BookingHistory bookingHistory = new BookingHistory();
+                        bookingHistory.setUserId(cancellationRequest.getUserId());
+                        bookingHistory.setBookingId(cancellationRequest.getBookingId());
+                        bookingHistory.setCreatedAt(new Date());
+                        bookingHistory.setBookingStatus(HotelDetails_Enum.BookingStatus.CANCELLED);
+                        CacheUtil.addBookingHistory(bookingHistory);
                     }
                 }, executorService);
 
                 response.setStatus(true);
+                response.setUserId(cancellationRequest.getUserId());
                 response.setMessage("Booking cancelled successfully.");
                 logger.info("Successfully cancelled booking for bookingId: {}", cancellationRequest.getBookingId());
             } catch (Exception e) {

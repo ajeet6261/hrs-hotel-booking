@@ -25,6 +25,7 @@ public class CancellationDetails {
     private String cancellationBy;
     private String cancellationRemarks;
     private int refundMode;
+    private int requestType;
 
     public String getBookingId() {
         return bookingId;
@@ -112,5 +113,13 @@ public class CancellationDetails {
 
     public void setRefundAmount(double refundAmount) {
         this.refundAmount = refundAmount;
+    }
+
+    public int getRequestType() {
+        return requestType;
+    }
+
+    public void setRequestType(int requestType) {
+        this.requestType = requestType;
     }
 }

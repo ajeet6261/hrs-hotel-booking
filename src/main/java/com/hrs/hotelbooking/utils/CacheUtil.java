@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -148,7 +149,7 @@ public class CacheUtil {
         BookingHistory bookingHistory = new BookingHistory();
         bookingHistory.setUserId(bookingRequest.getUserId());
         bookingHistory.setBookingId(bookingRequest.getBookingId());
-        bookingHistory.setCreatedAt(LocalDateTime.now());
+        bookingHistory.setCreatedAt(new Date());
         bookingHistory.setBookingStatus(HotelDetails_Enum.BookingStatus.CONFIRMED);
         addBookingHistory(bookingHistory);
     }

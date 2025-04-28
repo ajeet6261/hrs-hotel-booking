@@ -11,7 +11,22 @@ public class CancelDetails_Enum {
             this.value = value;
         }
 
-        public int getValue() {
+        public int getCode() {
+            return value;
+        }
+    }
+
+    public enum RequestType {
+        Cancellation(1),
+        DateChange(2);
+
+        private int value;
+
+        RequestType(int value) {
+            this.value = value;
+        }
+
+        public int getCode() {
             return value;
         }
     }

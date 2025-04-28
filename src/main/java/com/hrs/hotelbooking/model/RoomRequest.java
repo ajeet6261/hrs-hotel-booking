@@ -1,6 +1,7 @@
 package com.hrs.hotelbooking.model;
 
 public class RoomRequest {
+    private int roomLineNo;
     private String roomType;
     private int noOfRooms;
     private double baseAmount;
@@ -10,6 +11,14 @@ public class RoomRequest {
     private double taxAmount;
     private double sellingPrice;
     private double discountAmount;
+
+    public int getRoomLineNo() {
+        return roomLineNo;
+    }
+
+    public void setRoomLineNo(int roomLineNo) {
+        this.roomLineNo = roomLineNo;
+    }
 
     public String getRoomType() {
         return roomType;

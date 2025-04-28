@@ -81,3 +81,12 @@ hotelier:
       initialInterval: 1000
       multiplier: 2
       maxInterval: 10000
+user:
+  cancel:
+    url: http://localhost:8080/api/bookings/cancelBooking
+    timeout: 5000
+    retry:
+      maxAttempts: 3
+      initialInterval: 1000
+      multiplier: 2
+      maxInterval: 10000
