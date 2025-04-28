@@ -100,6 +100,7 @@ public class CancelBookingServiceImpl implements CancelBookingService {
                 }
                 // Update booking status            
                 hotelDetails.setBookingStatus(HotelDetails_Enum.BookingStatus.CANCELLED);
+                hotelDetails.setHotelStatus(HotelDetails_Enum.HotelStatus.REJECTED);
                 hotelDetailsDao.save(hotelDetails);
                 logger.debug("Updated booking status to CANCELLED for lineNo: {}", cancellationLine.getRoomLineNo());
             }

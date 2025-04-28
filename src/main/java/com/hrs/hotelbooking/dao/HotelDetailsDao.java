@@ -33,13 +33,14 @@ public class HotelDetailsDao {
     public List<HotelDetails> prepareHotelDetails(Hotel hotel, BookingRequest bookingRequest) {
         List<HotelDetails> hotelDetailsList = new ArrayList<>();
         List<RoomRequest> roomRequests = bookingRequest.getRoomRequest();
+        String bookingId = generateBookingId();
         int currentLineNo = INITIAL_LINE_NO;
 
         for (RoomRequest roomRequest : roomRequests) {
             HotelDetails hotelDetails = new HotelDetails();
 
             // Set booking details
-            hotelDetails.setBookingId(generateBookingId());
+            hotelDetails.setBookingId(bookingId);
             hotelDetails.setLineno(currentLineNo);
             hotelDetails.setCountryOfTravel(bookingRequest.getCountryOfTravel());
             hotelDetails.setTravelCity(bookingRequest.getCity());
