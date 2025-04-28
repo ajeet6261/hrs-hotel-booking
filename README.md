@@ -419,7 +419,7 @@ CREATE TABLE user (
 - Handles concurrent operations safely
 
 - `CancelBookingServiceImpl`
-### 2. Booking Cancellation (`cancelBooking`)
+### 3. Booking Cancellation (`cancelBooking`)
 - Validates user existence and active status
 - mark cancellation at hotel end
 - Update hotel details with same booking IDs (True Date Change flow is maintained)
@@ -427,7 +427,7 @@ CREATE TABLE user (
 - Uses thread pool for non-blocking operations
 
 - `UpdateBookingServiceImpl`
-### 2. Booking Modification (`updateBooking`)
+### 4. Booking Modification (`updateBooking`)
 - Validates user existence and active status
 - mark cancellation at hotel end
 - cancel booking in our system and initiate refund to User with difference amount
