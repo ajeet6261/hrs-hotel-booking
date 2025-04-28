@@ -161,22 +161,40 @@ Returns a list of all hotels currently in the cache.
 curl -X POST http://localhost:8080/api/bookings/createBooking \
 -H "Content-Type: application/json" \
 -d '{
-    "userId": "USER123",
-    "hotelCode": "HOTEL001",
-    "roomRequest": [
-        {
-            "roomType": "DELUXE",
-            "noOfRooms": 2,
-            "noOfNights": 3,
-            "baseAmount": 5000.00,
-            "igstAmount": 900.00,
-            "cgstAmount": 450.00,
-            "sgstAmount": 450.00,
-            "taxAmount": 1800.00,
-            "sellingPrice": 6800.00,
-            "discountAmount": 0.00
-        }
-    ]
+     "userId": "USER001",
+     "hotelCode": "TAJ001",
+     "roomRequest": [
+       {
+         "roomType": "Single",
+         "noOfRooms": 1,
+         "baseAmount": 5000,
+         "igstAmount": 100,
+         "cgstAmount": 0,
+         "sgstAmount": 0,
+         "taxAmount": 500,
+         "sellingPrice": 5100,
+         "discountAmount": 100
+       },
+   {
+         "roomType": "Double",
+         "noOfRooms": 1,
+         "baseAmount": 8000,
+         "igstAmount": 100,
+         "cgstAmount": 0,
+         "sgstAmount": 0,
+         "taxAmount": 500,
+         "sellingPrice": 8100,
+         "discountAmount": 100
+       }
+     ],
+     "checkInDate": "2025-05-20",
+     "checkOutDate": "2025-05-21",
+     "freeCancellation": false,
+     "currencyCode": "INR",
+     "currencyFactor": 1,
+     "remarks": "pool side view",
+     "countryOfTravel": "India",
+     "city": "mumbai"
 }'
 ```
 Response:
@@ -233,26 +251,30 @@ Response:
 curl -X PUT http://localhost:8080/api/bookings/updateBooking \
 -H "Content-Type: application/json" \
 -d '{
-    "bookingId": "BK123456",
-    "hotelDetails": [
-        {
-            "bookingId": "BK123456",
-            "lineNo": 1000,
-            "roomLineNo": 1000,
-            "hotelCode": "HOTEL001",
-            "roomType": "DELUXE",
-            "noOfRooms": 3,
-            "noOfNights": 3,
-            "baseAmount": 7500.00,
-            "igstAmount": 1350.00,
-            "cgstAmount": 675.00,
-            "sgstAmount": 675.00,
-            "taxAmount": 2700.00,
-            "sellingPrice": 10200.00,
-            "discountAmount": 0.00,
-            "bookingStatus": "CONFIRMED"
-        }
-    ]
+     "userId": "USER001",
+     "hotelCode": "TAJ001",
+     "bookingId": "HRSSTBSTUA",
+     "roomRequest": [
+       {
+         "roomType": "single",
+         "noOfRooms": 1,
+         "baseAmount": 5000,
+         "igstAmount": 100,
+         "cgstAmount": 0,
+         "sgstAmount": 0,
+         "taxAmount": 500,
+         "sellingPrice": 5100,
+         "discountAmount": 100
+       }
+     ],
+     "checkInDate": "2025-04-27",
+     "checkOutDate": "2025-04-28",
+     "freeCancellation": false,
+     "currencyCode": "INR",
+     "currencyFactor": 1,
+     "remarks": "upgrade room if possible",
+     "countryOfTravel": "India",
+     "city": "mumbai"
 }'
 ```
 Response:
@@ -268,15 +290,18 @@ Response:
 curl -X POST http://localhost:8080/api/bookings/cancelBooking \
 -H "Content-Type: application/json" \
 -d '{
-    "bookingId": "BK123456",
-    "userId": "USER123",
-    "reason": "Change of plans",
-    "cancellationLines": [
-        {
-            "roomLineNo": 1000
-        }
-    ],
-    "refundAdjustment": "CREDIT"
+     "bookingId": "HRSKFYP9F9",
+     "userId": "USER001",
+     "reason": "cancel",
+     "cancellationLines": [
+       {
+         "roomLineNo": 1000,
+         "refundAmount": 100
+       }
+     ],
+     "refundAdjustment": 1,
+     "commitCall": true,
+    "requestType": 1
 }'
 ```
 Response:
