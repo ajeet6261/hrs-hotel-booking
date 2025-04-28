@@ -18,10 +18,6 @@ The API documentation is available through Swagger UI at:
 http://localhost:8080/swagger-ui/index.html
 ```
 
-You can also access the OpenAPI specification in:
-- JSON format: `http://localhost:8080/v3/api-docs`
-- YAML format: `http://localhost:8080/v3/api-docs.yaml`
-
 ### Search Hotels API
 
 #### Endpoint
@@ -125,33 +121,6 @@ Initializes the cache with test hotel data. This endpoint populates the cache wi
     "message": "Cache initialized successfully with test data"
 }
 ```
-
-#### Clear Cache
-```http
-DELETE /api/cache/clear
-```
-Clears all data from the cache.
-
-**Response:**
-```json
-{
-    "message": "Cache cleared successfully"
-}
-```
-
-#### Get Cache Status
-```http
-GET /api/cache/status
-```
-Returns the number of hotels currently in the cache.
-
-**Response:**
-```json
-{
-    "message": "Cache contains X hotels"
-}
-```
-
 #### Get All Hotels
 ```http
 GET /api/cache/hotels
@@ -176,112 +145,9 @@ Returns a list of all hotels currently in the cache.
         "checkInTime": "14:00",
         "checkOutTime": "12:00",
         "available": true
-    },
-    // ... other hotels
+    }
 ]
 ```
-
-### Error Responses
-
-All cache management APIs may return the following error responses:
-
-```json
-{
-    "message": "Failed to [operation]: [error message]"
-}
-```
-
-## Database Setup
-
-### MySQL Database Configuration
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/hrsdb
-spring.datasource.username=root
-spring.datasource.password=
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-```
-
-### Table Creation Queries
-
-#### Hotel Table (Master table)
-```sql
-CREATE TABLE hotel (
-    code VARCHAR(50) PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    city VARCHAR(50) NOT NULL,
-    status INT NOT NULL,
-    contactno VARCHAR(20),
-    category VARCHAR(50),
-    vendorno VARCHAR(50),
-    address TEXT,
-    company_code VARCHAR(50)
-);
-```
-
-#### Hotel Details Table
-```sql
-CREATE TABLE hotel_details (
-    booking_id VARCHAR(50),
-    lineno INT,
-    country_of_travel VARCHAR(50),
-    travel_city VARCHAR(50),
-    check_in_date DATE,
-    check_out_date DATE,
-    hotel_code VARCHAR(50),
-    hotel_name VARCHAR(100),
-    booking_status INT,
-    hotel_status INT,
-    no_of_nights INT,
-    room_type INT,
-    vendor_no VARCHAR(50),
-    no_of_rooms INT,
-    base_amount DECIMAL(10,2),
-    igst_amount DECIMAL(10,2),
-    cgst_amount DECIMAL(10,2),
-    sgst_amount DECIMAL(10,2),
-    tax_amount DECIMAL(10,2),
-    selling_price DECIMAL(10,2),
-    discount_amount DECIMAL(10,2),
-    currency_code VARCHAR(10),
-    currency_factor DECIMAL(10,2),
-    booking_created_date DATETIME,
-    remarks TEXT,
-    PRIMARY KEY (booking_id, lineno)    
-);
-```
-
-#### Cancellation Details Table
-```sql
-CREATE TABLE cancellation_details (
-    booking_id VARCHAR(50),
-    cancellation_id VARCHAR(50),
-    line_no INT,
-    room_line_no INT,
-    cancellation_date DATETIME,
-    refund_amount DECIMAL(10,2),
-    cancellation_reason TEXT,
-    cancellation_status VARCHAR(20),
-    cancellation_by VARCHAR(50),
-    cancellation_remarks TEXT,
-    refund_mode INT,
-    requestType INT,
-    PRIMARY KEY (booking_id, cancellation_id, line_no)    
-);
-```
-
-#### User Table
-```sql
-CREATE TABLE user (
-    user_id VARCHAR(50) PRIMARY KEY,
-    user_name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE,
-    phone VARCHAR(20)
-);
-```
-
-## API Endpoints
-
 ### Booking Management
 - `POST /api/bookings/createBooking` - Create a new booking
 - `GET /api/bookings/getBooking/{bookingId}` - Get booking details
@@ -442,19 +308,109 @@ Response:
     }
 ]
 ```
+## Database Setup
+
+### MySQL Database Configuration
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/hrsdb
+spring.datasource.username=root
+spring.datasource.password=
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+```
+
+### Table Creation Queries
+
+#### Hotel Table (Master table)
+```sql
+CREATE TABLE hotel (
+    code VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    city VARCHAR(50) NOT NULL,
+    status INT NOT NULL,
+    contactno VARCHAR(20),
+    category VARCHAR(50),
+    vendorno VARCHAR(50),
+    address TEXT,
+    company_code VARCHAR(50)
+);
+```
+
+#### Hotel Details Table
+```sql
+CREATE TABLE hotel_details (
+    booking_id VARCHAR(50),
+    lineno INT,
+    country_of_travel VARCHAR(50),
+    travel_city VARCHAR(50),
+    check_in_date DATE,
+    check_out_date DATE,
+    hotel_code VARCHAR(50),
+    hotel_name VARCHAR(100),
+    booking_status INT,
+    hotel_status INT,
+    no_of_nights INT,
+    room_type INT,
+    vendor_no VARCHAR(50),
+    no_of_rooms INT,
+    base_amount DECIMAL(10,2),
+    igst_amount DECIMAL(10,2),
+    cgst_amount DECIMAL(10,2),
+    sgst_amount DECIMAL(10,2),
+    tax_amount DECIMAL(10,2),
+    selling_price DECIMAL(10,2),
+    discount_amount DECIMAL(10,2),
+    currency_code VARCHAR(10),
+    currency_factor DECIMAL(10,2),
+    booking_created_date DATETIME,
+    remarks TEXT,
+    PRIMARY KEY (booking_id, lineno)    
+);
+```
+
+#### Cancellation Details Table
+```sql
+CREATE TABLE cancellation_details (
+    booking_id VARCHAR(50),
+    cancellation_id VARCHAR(50),
+    line_no INT,
+    room_line_no INT,
+    cancellation_date DATETIME,
+    refund_amount DECIMAL(10,2),
+    cancellation_reason TEXT,
+    cancellation_status VARCHAR(20),
+    cancellation_by VARCHAR(50),
+    cancellation_remarks TEXT,
+    refund_mode INT,
+    requestType INT, // represents CANCELLATION/DATECHANGE
+    PRIMARY KEY (booking_id, cancellation_id, line_no)    
+);
+```
+
+#### User Table
+```sql
+CREATE TABLE user (
+    user_id VARCHAR(50) PRIMARY KEY,
+    user_name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    phone VARCHAR(20)
+);
+```
 
 ## Overview
-`BookingServiceImpl` is the core service implementation for hotel booking operations. It handles booking creation, retrieval, updates, and cancellations with integrated caching and asynchronous processing.
+`CreateBookingServiceImpl` is the core service implementation for hotel booking creation with integrated caching and asynchronous processing.
 
 ## Features
 
 ### 1. Booking Creation (`createBooking`)
 - Validates user existence and active status
 - Verifies hotel availability and active status
+- Confirm hotel booking at Hotlier end
 - Creates hotel details with unique booking IDs
 - Implements asynchronous caching and queue publishing
 - Uses thread pool for non-blocking operations
-
+  
+- `GetBookingServiceImpl` 
 ### 2. Booking Retrieval (`getBooking`)
 - Implements cache-first strategy
 - Falls back to database if cache miss
@@ -462,6 +418,21 @@ Response:
 - Uses asynchronous caching for performance
 - Handles concurrent operations safely
 
+- `CancelBookingServiceImpl`
+- Validates user existence and active status
+- mark cancellation at hotel end
+- Update hotel details with same booking IDs (True Date Change flow is maintained)
+- Implements asynchronous caching and queue publishing
+- Uses thread pool for non-blocking operations
+
+- `UpdateBookingServiceImpl`
+- Validates user existence and active status
+- mark cancellation at hotel end
+- cancel booking in our system and initiate refund to User with difference amount
+- Update hotel details with same booking IDs (True Date Change flow is maintained)
+- Implements asynchronous caching and queue publishing
+- Uses thread pool for non-blocking operations
+- 
 ### 3. Caching Strategy
 - Uses in-memory cache for hotel details
 - Caches cancellation policies
